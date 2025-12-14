@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import hueRoutes from './routes/hueRoutes';
+import groupRoutes from './routes/groupRoutes';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/hue', hueRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

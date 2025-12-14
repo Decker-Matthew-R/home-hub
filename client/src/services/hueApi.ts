@@ -37,3 +37,19 @@ export const setColor = async (lightId: string, hue: number, sat: number) => {
     const { data } = await axios.put(`${API_BASE}/hue/lights/${lightId}/color`, { hue, sat });
     return data;
 };
+
+// NEW: All lights functions
+export const toggleAllLights = async (on: boolean) => {
+    const { data } = await axios.put(`${API_BASE}/hue/all/toggle`, { on });
+    return data;
+};
+
+export const setAllLightsBrightness = async (brightness: number) => {
+    const { data } = await axios.put(`${API_BASE}/hue/all/brightness`, { brightness });
+    return data;
+};
+
+export const setAllLightsColor = async (hue: number, sat: number) => {
+    const { data } = await axios.put(`${API_BASE}/hue/all/color`, { hue, sat });
+    return data;
+};

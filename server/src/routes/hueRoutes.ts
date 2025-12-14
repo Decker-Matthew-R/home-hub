@@ -51,7 +51,7 @@ router.put('/lights/:id/brightness', async (req, res) => {
 router.put('/lights/:id/color', async (req, res) => {
     try {
         const { id } = req.params;
-        const { hue, sat } = req.body; // 0-1 range for both
+        const { hue, sat } = req.body;
 
         console.log(`Setting light ${id} color - hue: ${hue}, sat: ${sat}`);
 
@@ -60,6 +60,46 @@ router.put('/lights/:id/color', async (req, res) => {
     } catch (error: any) {
         console.error('Color change failed:', error.message);
         res.status(500).json({ error: 'Failed to set color', message: error.message });
+    }
+});
+
+// NEW: All lights endpoints
+router.put('/all/toggle', async (req, res) => {
+    try {
+        const { on } = req.body;
+        console.log(`Toggling ALL lights to ${on ? 'ON' : 'OFF'}`);
+
+        const result = await hueService.toggleAllLights(on);
+        res.json({ success: true, result });
+    } catch (error: any) {
+        console.error('Toggle all failed:', error.message);
+        res.status(500).json({ error: 'Failed to toggle all lights', message: error.message });
+    }
+});
+
+router.put('/all/brightness', async (req, res) => {
+    try {
+        const { brightness } = req.body;
+        console.log(`Setting ALL lights brightness to ${Math.round(brightness * 100)}%`);
+
+        const result = await hueService.setAllLightsBrightness(brightness);
+        res.json({ success: true, result });
+    } catch (error: any) {
+        console.error('Set all brightness failed:', error.message);
+        res.status(500).json({ error: 'Failed to set all brightness', message: error.message });
+    }
+});
+
+router.put('/all/color', async (req, res) => {
+    try {
+        const { hue, sat } = req.body;
+        console.log(`Setting ALL lights color - hue: ${hue}, sat: ${sat}`);
+
+        const result = await hueService.setAllLightsColor(hue, sat);
+        res.json({ success: true, result });
+    } catch (error: any) {
+        console.error('Set all color failed:', error.message);
+        res.status(500).json({ error: 'Failed to set all color', message: error.message });
     }
 });
 

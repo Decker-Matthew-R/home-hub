@@ -2,6 +2,7 @@ import { Container, Typography, CircularProgress, Alert, Box } from '@mui/materi
 import { useQuery } from '@tanstack/react-query';
 import { fetchLights } from '../services/hueApi';
 import { LightTile } from './LightTile';
+import { AllLightsControl } from './AllLightsControl';
 
 export function LightsPage() {
     const { data: lights, isLoading, error } = useQuery({
@@ -31,7 +32,14 @@ export function LightsPage() {
             <Typography variant="h3" component="h1" gutterBottom>
                 Lights
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+
+            {/* NEW: All Lights Control Section */}
+            <AllLightsControl />
+
+            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
+                Individual Lights
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Click any light to toggle it on or off
             </Typography>
 

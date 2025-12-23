@@ -1,6 +1,7 @@
-import { Container, Typography, CircularProgress, Alert, Box } from '@mui/material';
+import { Container, Typography, CircularProgress, Alert, Box, Button } from '@mui/material';
+import { Info } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchLights } from '../services/hueApi';
+import { fetchLights, fetchBridgeConfig } from '../services/hueApi';
 import { fetchGroups, createGroup, updateGroup, deleteGroup } from '../services/groupApi';
 import { LightTile } from './LightTile';
 import { AllLightsControl } from './AllLightsControl';
@@ -8,6 +9,7 @@ import { GroupsSidebar } from './GroupsSidebar';
 import { GroupControl } from './GroupControl';
 import { GroupManagementModal } from './GroupManagementModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { BridgeInfoModal } from './BridgeInfoModal';
 import { useState } from 'react';
 
 export function LightsPage() {
@@ -18,6 +20,7 @@ export function LightsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
     const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
+    const [bridgeInfoOpen, setBridgeInfoOpen] = useState(false);
 
     const { data: lights, isLoading: lightsLoading, error: lightsError } = useQuery({
         queryKey: ['lights'],
@@ -29,6 +32,11 @@ export function LightsPage() {
         queryKey: ['groups'],
         queryFn: fetchGroups,
         refetchInterval: 10000,
+    });
+
+    const { data: bridgeConfig } = useQuery({
+        queryKey: ['bridgeConfig'],
+        queryFn: fetchBridgeConfig,
     });
 
     const createMutation = useMutation({
@@ -102,10 +110,9 @@ export function LightsPage() {
         );
     }
 
-    // Convert groups object to array
     const groups = groupsData
         ? Object.entries(groupsData)
-            .filter(([_, group]) => group.type === 'LightGroup') // Only show LightGroups
+            .filter(([_, group]) => group.type === 'LightGroup')
             .map(([id, group]) => ({
                 id,
                 name: group.name,
@@ -113,21 +120,16 @@ export function LightsPage() {
             }))
         : [];
 
-    // Get selected group details
     const selectedGroup = selectedGroupId && groupsData?.[selectedGroupId];
-
-    // Filter lights based on selected group
     const displayedLights = selectedGroupId && selectedGroup
         ? Object.entries(lights || {}).filter(([id]) => selectedGroup.lights.includes(id))
         : Object.entries(lights || {});
 
-    // Get editing group details
     const editingGroup = editingGroupId ? groupsData?.[editingGroupId] : undefined;
     const deletingGroup = deletingGroupId ? groupsData?.[deletingGroupId] : undefined;
 
     return (
         <Box display="flex">
-            {/* Sidebar */}
             <GroupsSidebar
                 groups={groups}
                 selectedGroupId={selectedGroupId}
@@ -137,21 +139,28 @@ export function LightsPage() {
                 onDeleteGroup={handleDeleteGroup}
             />
 
-            {/* Main Content */}
             <Box sx={{ flexGrow: 1, ml: '250px', p: 4 }}>
                 <Container maxWidth="lg">
-                    <Typography variant="h3" component="h1" gutterBottom>
-                        {selectedGroupId && selectedGroup ? selectedGroup.name : 'All Lights'}
-                    </Typography>
+                    {/* Header with Bridge Info Button */}
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                        <Typography variant="h3" component="h1">
+                            {selectedGroupId && selectedGroup ? selectedGroup.name : 'All Lights'}
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            startIcon={<Info />}
+                            onClick={() => setBridgeInfoOpen(true)}
+                        >
+                            Bridge Info
+                        </Button>
+                    </Box>
 
-                    {/* Group/All Lights Control */}
                     {selectedGroupId && selectedGroup ? (
                         <GroupControl groupId={selectedGroupId} groupName={selectedGroup.name} />
                     ) : (
                         <AllLightsControl />
                     )}
 
-                    {/* Individual Lights */}
                     <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
                         Individual Lights
                     </Typography>
@@ -180,6 +189,7 @@ export function LightsPage() {
                                     hue={light.state.hue}
                                     sat={light.state.sat}
                                     reachable={light.state.reachable}
+                                    lightData={light}
                                 />
                             </Box>
                         ))}
@@ -187,7 +197,6 @@ export function LightsPage() {
                 </Container>
             </Box>
 
-            {/* Modals */}
             <GroupManagementModal
                 open={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
@@ -217,6 +226,12 @@ export function LightsPage() {
                 }}
                 onConfirm={handleConfirmDelete}
                 groupName={deletingGroup?.name ?? ''}
+            />
+
+            <BridgeInfoModal
+                open={bridgeInfoOpen}
+                onClose={() => setBridgeInfoOpen(false)}
+                config={bridgeConfig || null}
             />
         </Box>
     );

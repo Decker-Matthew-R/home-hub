@@ -12,10 +12,30 @@ export interface Light {
         reachable: boolean;
     };
     type: string;
+    modelid: string;
+    manufacturername: string;
+    productname: string;
+    capabilities: any;
+    swversion: string;
+    swupdate: any;
+    uniqueid: string;
 }
 
 export interface LightsResponse {
     [id: string]: Light;
+}
+
+export interface BridgeConfig {
+    name: string;
+    modelid: string;
+    swversion: string;
+    apiversion: string;
+    mac: string;
+    bridgeid: string;
+    factorynew: boolean;
+    replacesbridgeid: string | null;
+    datastoreversion: string;
+    ipaddress: string;
 }
 
 export const fetchLights = async (): Promise<LightsResponse> => {
@@ -38,7 +58,6 @@ export const setColor = async (lightId: string, hue: number, sat: number) => {
     return data;
 };
 
-// NEW: All lights functions
 export const toggleAllLights = async (on: boolean) => {
     const { data } = await axios.put(`${API_BASE}/hue/all/toggle`, { on });
     return data;
@@ -51,5 +70,11 @@ export const setAllLightsBrightness = async (brightness: number) => {
 
 export const setAllLightsColor = async (hue: number, sat: number) => {
     const { data } = await axios.put(`${API_BASE}/hue/all/color`, { hue, sat });
+    return data;
+};
+
+// NEW: Bridge info
+export const fetchBridgeConfig = async (): Promise<BridgeConfig> => {
+    const { data } = await axios.get(`${API_BASE}/hue/config`);
     return data;
 };

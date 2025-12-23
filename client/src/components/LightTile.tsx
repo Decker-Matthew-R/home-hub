@@ -1,9 +1,10 @@
 import { Card, CardContent, Typography, IconButton, Box, Slider, Button } from '@mui/material';
-import { Lightbulb, LightbulbOutlined, Palette } from '@mui/icons-material';
+import { Lightbulb, LightbulbOutlined, Palette, Info } from '@mui/icons-material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toggleLight, setBrightness, setColor } from '../services/hueApi';
 import { useState, useMemo } from 'react';
 import { ColorPickerModal } from './ColorPickerModal';
+import { LightDetailsModal } from './LightDetailsModal';
 import { throttle } from 'lodash';
 
 interface LightTileProps {
@@ -14,14 +15,16 @@ interface LightTileProps {
     hue: number;
     sat: number;
     reachable: boolean;
+    lightData?: any; // Full light object for details modal
 }
 
-export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: LightTileProps) {
+export function LightTile({ id, name, isOn, brightness, hue, sat, reachable, lightData }: LightTileProps) {
     const queryClient = useQueryClient();
 
     const normalizedBrightness = Math.round((brightness / 254) * 100);
     const [localBrightness, setLocalBrightness] = useState(normalizedBrightness);
     const [colorModalOpen, setColorModalOpen] = useState(false);
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
     const toggleMutation = useMutation({
         mutationFn: (newState: boolean) => toggleLight(id, newState),
@@ -41,12 +44,11 @@ export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: L
         },
     });
 
-    // Throttle brightness changes to every 200ms while sliding
     const throttledBrightnessChange = useMemo(
         () => throttle((value: number) => {
             brightnessMutation.mutate(value);
         }, 200),
-        [id]
+        []
     );
 
     const handleToggle = () => {
@@ -58,7 +60,6 @@ export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: L
     const handleBrightnessChange = (_event: Event, newValue: number | number[]) => {
         const value = Array.isArray(newValue) ? newValue[0] : newValue;
         setLocalBrightness(value);
-        // Send throttled API call while dragging
         throttledBrightnessChange(value);
     };
 
@@ -77,6 +78,20 @@ export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: L
                 }}
             >
                 <CardContent sx={{ flexGrow: 1 }}>
+                    {/* Header with Name and Info Button */}
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                            {name}
+                        </Typography>
+                        <IconButton
+                            size="small"
+                            onClick={() => setDetailsModalOpen(true)}
+                            sx={{ mt: -1, mr: -1 }}
+                        >
+                            <Info fontSize="small" />
+                        </IconButton>
+                    </Box>
+
                     <Box
                         sx={{
                             textAlign: 'center',
@@ -97,10 +112,6 @@ export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: L
                             {isOn ? <Lightbulb sx={{ fontSize: 60 }} /> : <LightbulbOutlined sx={{ fontSize: 60 }} />}
                         </IconButton>
                     </Box>
-
-                    <Typography variant="h6" component="div" gutterBottom textAlign="center">
-                        {name}
-                    </Typography>
 
                     <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
                         {isOn ? 'On' : 'Off'}
@@ -157,6 +168,13 @@ export function LightTile({ id, name, isOn, brightness, hue, sat, reachable }: L
                 currentHue={hue}
                 currentSat={sat}
                 onColorChange={handleColorChange}
+            />
+
+            <LightDetailsModal
+                open={detailsModalOpen}
+                onClose={() => setDetailsModalOpen(false)}
+                light={lightData}
+                lightName={name}
             />
         </>
     );

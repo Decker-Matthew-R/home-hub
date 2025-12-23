@@ -103,4 +103,15 @@ router.put('/all/color', async (req, res) => {
     }
 });
 
+router.get('/config', async (req, res) => {
+    try {
+        console.log('Fetching bridge config...');
+        const config = await hueService.getBridgeConfig();
+        res.json(config);
+    } catch (error: any) {
+        console.error('Failed to fetch bridge config:', error.message);
+        res.status(500).json({ error: 'Failed to fetch bridge config', message: error.message });
+    }
+});
+
 export default router;

@@ -120,3 +120,8 @@ export const setGroupColor = async (groupId: string, hue: number, sat: number) =
     });
     return response.data;
 };
+
+export const getBridgeConfig = async () => {
+    const response = await hueClient.get('/config');
+    return response.data;
+};
